@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import Choice from "../components/Choice";
+
 
 const url = "https://quizapi.io/api/v1/questions";
 
@@ -82,12 +84,57 @@ const Quiz = () => {
         choice: question,
         isCorrect: correctAnswers[index],
       }));
-  return (
-    <div>
-		<h2>クイズだよ！</h2>
-		<Link to="/quiz">quizをやる</Link>
-    </div>
-  );
+      if (isLoading) {
+        return (
+          <div className="progress">
+            <div className="indeterminate" />
+          </div>
+        );
+      }
+    
+      return (
+        <div style={{ marginBottom: "5em" }}>
+          <div style={{ margin: "3em 0" }}>
+            <p className="grey-text">
+              <span>{quizzes?.category || "no category"}</span>
+              <span> - {quizzes?.tags.map((i) => i.name + " ") || "no tags"}</span>
+              <span> - {quizzes?.difficulty}</span>
+            </p>
+            <h5 className="container question">{quizzes?.question}</h5>
+          </div>
+          <div className="row">
+            {quizList?.map((choice, index) => {
+              return (
+                <Choice
+                  key={index}
+                  choice={choice.choice}
+                  isCorrect={choice.isCorrect}
+                  answered={answered}
+                  updateAnswer={updateAnswer}
+                  id={index}
+                />
+              );
+            })}
+          </div>
+          {answered && (
+            <div className="correctness">
+              <h3 className="center-align">{isCorrect ? "正解！😁" : "不正解"}</h3>
+              <p className="center-align tips">{quizzes?.tip}</p>
+            </div>
+          )}
+          <div className="center-align">
+            <button
+              className="btn-large green"
+              onClick={() => {
+                answered ? fetchQuiz() : checkAnswer();
+              }}
+            >
+              {answered ? "次へ" : "答え合わせ"}
+            </button>
+          </div>
+        </div>
+      );
+    
 };
 
 export default Quiz;
