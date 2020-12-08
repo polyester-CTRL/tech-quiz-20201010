@@ -5,6 +5,7 @@ import Choice from "../components/Choice";
 
 
 const url = "https://quizapi.io/api/v1/questions";
+const translate_url = process.env.REACT_APP_TRANSLATION_URL;
 
 // config for axios
 const config = {
@@ -18,6 +19,7 @@ const config = {
 
 const Quiz = () => {
   const [quizzes, setquizzes] = useState(null);
+  const [translations, settranslations] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [isCorrect, setCorrect] = useState(null);
@@ -40,6 +42,29 @@ const Quiz = () => {
       })
       .catch((e) => {
         alert("エラーだよ。コンソールを見てね");
+        console.error(e);
+      })
+      .finally(() => {
+        // setLoading(false);
+      });
+    translateQuiz();
+  };
+  const translateQuiz = () => {
+    axios
+      .get(translate_url, {
+        params: {
+          text: quizzes?.question,
+          sources: "en",
+          target: "jp"
+        }
+      })
+      .then((res) => {
+        if (res.data) {
+          settranslations(res.data);
+        }
+      })
+      .catch((e) => {
+        alert("translateエラーだよ。コンソールを見てね");
         console.error(e);
       })
       .finally(() => {
@@ -100,6 +125,7 @@ const Quiz = () => {
               <span> - {quizzes?.tags.map((i) => i.name + " ") || "no tags"}</span>
               <span> - {quizzes?.difficulty}</span>
             </p>
+            <h5 className="container question">{translations}</h5>
             <h5 className="container question">{quizzes?.question}</h5>
           </div>
           <div className="row">
