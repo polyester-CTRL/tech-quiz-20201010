@@ -18,8 +18,8 @@ const config = {
 };
 
 const Quiz = () => {
-  const [quizzes, setquizzes] = useState(null);
-  const [translations, settranslations] = useState(null);
+  const [quizzes, setQuizzes] = useState(null);
+  const [translations, setTranslations] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [isCorrect, setCorrect] = useState(null);
@@ -37,7 +37,8 @@ const Quiz = () => {
       .then((res) => {
         // console.log(res)
         if (res.data) {
-          setquizzes(res.data[0]);
+          setQuizzes(res.data[0]);
+          translateQuiz((res.data[0]).question);
         }
       })
       .catch((e) => {
@@ -45,22 +46,23 @@ const Quiz = () => {
         console.error(e);
       })
       .finally(() => {
-        // setLoading(false);
+        setLoading(false);
       });
-    translateQuiz();
   };
-  const translateQuiz = () => {
+  const translateQuiz = (e) => {
+    console.log(e);
     axios
       .get(translate_url, {
         params: {
-          text: quizzes?.question,
+          text: e,
           sources: "en",
-          target: "jp"
+          target: "ja"
         }
       })
       .then((res) => {
         if (res.data) {
-          settranslations(res.data);
+          console.log(res.data);
+          setTranslations(res.data);
         }
       })
       .catch((e) => {
@@ -116,7 +118,7 @@ const Quiz = () => {
           </div>
         );
       }
-    
+
       return (
         <div style={{ marginBottom: "5em" }}>
           <div style={{ margin: "3em 0" }}>
@@ -125,7 +127,7 @@ const Quiz = () => {
               <span> - {quizzes?.tags.map((i) => i.name + " ") || "no tags"}</span>
               <span> - {quizzes?.difficulty}</span>
             </p>
-            <h5 className="container question">{translations}</h5>
+            <h5 className="container question">{translations?.text}</h5>
             <h5 className="container question">{quizzes?.question}</h5>
           </div>
           <div className="row">
