@@ -66,7 +66,7 @@ const Quiz = () => {
         }
       })
       .catch((e) => {
-        alert("translateエラーだよ。コンソールを見てね");
+        alert("translateエラーです。拡張機能を使っている場合はOFFにしてみてください。");
         console.error(e);
       })
       .finally(() => {
