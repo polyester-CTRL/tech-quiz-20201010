@@ -1,29 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import axios from "axios";
 import Choice from "../components/Choice";
-
 
 const url = "https://quizapi.io/api/v1/questions";
 const translate_url = process.env.REACT_APP_TRANSLATION_URL;
 
-// config for axios
-const config = {
-  params: {
-    limit: 1,
-  },
-  headers: {
-    "X-Api-Key": process.env.REACT_APP_QUIZAPI_KEY,
-  },
-};
-
-const Quiz = () => {
+const Quiz = (e) => {
   const [quizzes, setQuizzes] = useState(null);
   const [translations, setTranslations] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [isCorrect, setCorrect] = useState(null);
   const [answered, setAnswered] = useState(false);
+  const diff = e.location.props;
+  let tried = 0;
+  let success = 0;
   useEffect(() => {
     fetchQuiz();
     return;
@@ -32,13 +24,22 @@ const Quiz = () => {
     setAnswered(false);
     setLoading(true);
     setSelectedAnswers([]);
+    console.log(diff);
     axios
-      .get(url, config)
+      .get(url, {
+        params: {
+          limit: 1,
+          difficulty: diff,
+        },
+        headers: {
+          "X-Api-Key": process.env.REACT_APP_QUIZAPI_KEY,
+        },
+      })
       .then((res) => {
         // console.log(res)
         if (res.data) {
           setQuizzes(res.data[0]);
-          translateQuiz((res.data[0]).question);
+          translateQuiz(res.data[0].question);
         }
       })
       .catch((e) => {
@@ -48,6 +49,7 @@ const Quiz = () => {
       .finally(() => {
         setLoading(false);
       });
+    tried++;
   };
   const translateQuiz = (e) => {
     console.log(e);
@@ -56,8 +58,8 @@ const Quiz = () => {
         params: {
           text: e,
           sources: "en",
-          target: "ja"
-        }
+          target: "ja",
+        },
       })
       .then((res) => {
         if (res.data) {
@@ -66,7 +68,9 @@ const Quiz = () => {
         }
       })
       .catch((e) => {
-        alert("translateエラーです。拡張機能を使っている場合はOFFにしてみてください。");
+        alert(
+          "translateエラーです。拡張機能を使っている場合はOFFにしてみてください。"
+        );
         console.error(e);
       })
       .finally(() => {
@@ -111,58 +115,60 @@ const Quiz = () => {
         choice: question,
         isCorrect: correctAnswers[index],
       }));
-      if (isLoading) {
-        return (
-          <div className="progress">
-            <div className="indeterminate" />
-          </div>
-        );
-      }
+  if (isLoading) {
+    return (
+      <div className="progress">
+        <div className="indeterminate" />
+      </div>
+    );
+  }
 
-      return (
-        <div style={{ marginBottom: "5em" }}>
-          <div style={{ margin: "3em 0" }}>
-            <p className="grey-text">
-              <span>{quizzes?.category || "no category"}</span>
-              <span> - {quizzes?.tags.map((i) => i.name + " ") || "no tags"}</span>
-              <span> - {quizzes?.difficulty}</span>
-            </p>
-            <h5 className="container question">{translations?.text}</h5>
-            <h5 className="container question">{quizzes?.question}</h5>
-          </div>
-          <div className="row">
-            {quizList?.map((choice, index) => {
-              return (
-                <Choice
-                  key={index}
-                  choice={choice.choice}
-                  isCorrect={choice.isCorrect}
-                  answered={answered}
-                  updateAnswer={updateAnswer}
-                  id={index}
-                />
-              );
-            })}
-          </div>
-          {answered && (
-            <div className="correctness">
-              <h3 className="center-align">{isCorrect ? "正解！😁" : "不正解"}</h3>
-              <p className="center-align tips">{quizzes?.tip}</p>
-            </div>
-          )}
-          <div className="center-align">
-            <button
-              className="btn-large green"
-              onClick={() => {
-                answered ? fetchQuiz() : checkAnswer();
-              }}
-            >
-              {answered ? "次へ" : "答え合わせ"}
-            </button>
-          </div>
+  return (
+    <div style={{ marginBottom: "5em" }}>
+      <div style={{ margin: "3em 0" }}>
+        <p className="grey-text">
+          <span>{quizzes?.category || "no category"}</span>
+          <span> - {quizzes?.tags.map((i) => i.name + " ") || "no tags"}</span>
+          <span> - {quizzes?.difficulty}</span>
+        </p>
+        <h5 className="container question">{translations?.text}</h5>
+        <h5 className="container question">{quizzes?.question}</h5>
+      </div>
+      <div className="row">
+        {quizList?.map((choice, index) => {
+          return (
+            <Choice
+              key={index}
+              choice={choice.choice}
+              isCorrect={choice.isCorrect}
+              answered={answered}
+              updateAnswer={updateAnswer}
+              id={index}
+            />
+          );
+        })}
+      </div>
+      {answered && (
+        <div className="correctness">
+          <h3 className="center-align">{isCorrect ? "正解！😁" : "不正解"}</h3>
+          <p className="center-align tips">{quizzes?.tip}</p>
         </div>
-      );
-    
+      )}
+      <div className="center-align">
+        <button
+          className="btn-large green"
+          onClick={() => {
+            answered ? fetchQuiz() : checkAnswer();
+            if (answered && isCorrect) {
+              success++;
+            }
+          }}
+        >
+          {answered ? "次へ" : "答え合わせ"}
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default Quiz;
